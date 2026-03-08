@@ -1,0 +1,9 @@
+version: "3"
+services:
+  mcp-flux:
+    platform: linux/amd64
+    container_name: "mcp-flux"
+    build: ./
+    image: "ghcr.io/acedatacloud/mcp-flux:${BUILD_NUMBER}"
+    ports:
+      - "8000:8000"
