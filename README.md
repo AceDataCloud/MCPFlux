@@ -23,48 +23,131 @@ Generate and edit stunning AI images with Flux models (flux-dev, flux-pro, flux-
 
 ## Quick Start
 
-### Install from PyPI
+### 1. Get Your API Token
 
-```bash
-pip install mcp-flux-pro
-```
+1. Sign up at [AceDataCloud Platform](https://platform.acedata.cloud)
+2. Go to the [API documentation page](https://platform.acedata.cloud)
+3. Click **"Acquire"** to get your API token
+4. Copy the token for use below
 
-### Configure API Token
+### 2. Use the Hosted Server (Recommended)
 
-Get your API token from [AceDataCloud Platform](https://platform.acedata.cloud):
+AceDataCloud hosts a managed MCP server — **no local installation required**.
 
-```bash
-export ACEDATACLOUD_API_TOKEN="your_api_token_here"
-```
+**Endpoint:** `https://flux.mcp.acedata.cloud/mcp`
 
-### Run the Server
+All requests require a Bearer token. Use the API token from Step 1.
 
-```bash
-# stdio mode (for Claude Desktop, Cursor, etc.)
-mcp-flux-pro
+#### Claude Desktop
 
-# HTTP mode (for remote/cloud deployment)
-mcp-flux-pro --transport http --port 8000
-```
-
-## Claude Desktop Integration
-
-Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+Add to your config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
 
 ```json
 {
   "mcpServers": {
     "flux": {
-      "command": "mcp-flux-pro",
-      "env": {
-        "ACEDATACLOUD_API_TOKEN": "your_api_token_here"
+      "type": "streamable-http",
+      "url": "https://flux.mcp.acedata.cloud/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_TOKEN"
       }
     }
   }
 }
 ```
 
-Or using `uvx` (no install required):
+#### Cursor / Windsurf
+
+Add to your MCP config (`.cursor/mcp.json` or `.windsurf/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "flux": {
+      "type": "streamable-http",
+      "url": "https://flux.mcp.acedata.cloud/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_TOKEN"
+      }
+    }
+  }
+}
+```
+
+#### VS Code (Copilot)
+
+Add to your VS Code MCP config (`.vscode/mcp.json`):
+
+```json
+{
+  "servers": {
+    "flux": {
+      "type": "streamable-http",
+      "url": "https://flux.mcp.acedata.cloud/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_TOKEN"
+      }
+    }
+  }
+}
+```
+
+Or install the [Ace Data Cloud MCP extension](https://marketplace.visualstudio.com/items?itemName=acedatacloud.acedatacloud-mcp) for VS Code, which bundles all 11 MCP servers with one-click setup.
+
+#### JetBrains IDEs
+
+1. Go to **Settings → Tools → AI Assistant → Model Context Protocol (MCP)**
+2. Click **Add** → **HTTP**
+3. Paste:
+
+```json
+{
+  "mcpServers": {
+    "flux": {
+      "url": "https://flux.mcp.acedata.cloud/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_TOKEN"
+      }
+    }
+  }
+}
+```
+
+#### cURL Test
+
+```bash
+# Health check (no auth required)
+curl https://flux.mcp.acedata.cloud/health
+
+# MCP initialize
+curl -X POST https://flux.mcp.acedata.cloud/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
+```
+
+### 3. Or Run Locally (Alternative)
+
+If you prefer to run the server on your own machine:
+
+```bash
+# Install from PyPI
+pip install mcp-flux-pro
+# or
+uvx mcp-flux-pro
+
+# Set your API token
+export ACEDATACLOUD_API_TOKEN="your_token_here"
+
+# Run (stdio mode for Claude Desktop / local clients)
+mcp-flux-pro
+
+# Run (HTTP mode for remote access)
+mcp-flux-pro --transport http --port 8000
+```
+
+#### Claude Desktop (Local)
 
 ```json
 {
@@ -73,12 +156,21 @@ Or using `uvx` (no install required):
       "command": "uvx",
       "args": ["mcp-flux-pro"],
       "env": {
-        "ACEDATACLOUD_API_TOKEN": "your_api_token_here"
+        "ACEDATACLOUD_API_TOKEN": "your_token_here"
       }
     }
   }
 }
 ```
+
+#### Docker (Self-Hosting)
+
+```bash
+docker pull ghcr.io/acedatacloud/mcp-flux-pro:latest
+docker run -p 8000:8000 ghcr.io/acedatacloud/mcp-flux-pro:latest
+```
+
+Clients connect with their own Bearer token — the server extracts the token from each request's `Authorization` header.
 
 ## Cursor Integration
 
